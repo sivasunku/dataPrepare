@@ -33,9 +33,14 @@ getBhavcopy <- function(startDate = as.Date("2010-01-01",order="ymd"),
   if( class( temp ) == "try-error" || is.na( temp ) ) {
     stop("In getBhavcopy : endDate is not valid")
   }
+  
+  if (startDate > endDate){
+    stop("In getBhavcopy : startDate is greater than endDate")
+  }
+  
   currDir <- getwd()
   setwd(tempdir())
-  currDate = startDate
+  currDate = as.Date(startDate)
   zippedFile <- tempfile()
   
   while (currDate <= endDate){
@@ -49,6 +54,7 @@ getBhavcopy <- function(startDate = as.Date("2010-01-01",order="ymd"),
                   as.character(currDate, "%Y"), "/", 
                   toupper(as.character(currDate, "%b")),"/",
                   downloadfilename, ".zip", sep = "")
+
     tryCatch ( {
       #Download  & unzip file 
       download.file(myURL,zippedFile, quiet=TRUE, mode="wb")
@@ -73,7 +79,7 @@ getBhavcopy <- function(startDate = as.Date("2010-01-01",order="ymd"),
   currDate <- currDate+1
   #Do not try to get data for weekends.
   if (weekends == FALSE){
-    while( (wday(currDate) == 1) || (wday(currDate == 7)) ){
+    while( (wday(currDate) == 1) || (wday(currDate) == 7) ){
         currDate <- currDate + 1
   }
   }
