@@ -1,0 +1,14 @@
+Package: dataPrepare
+Type: Package
+Title: What the Package Does (Title Case)
+Version: 0.1.0
+Author: siva kumar sunku
+Maintainer: siva.sunku@gmail.com
+Description: This package helps to prepare the data,keep the data consistent. 
+    Main functions do include, 
+    #1. downloading the bhavcopy, making it as a dataframe. 
+    #2. Functions to extract the OHLC for given dates 
+    #3. Store the repository from Zerodha Pi downloads etc.
+License: Open :-)
+Encoding: UTF-8
+LazyData: true
