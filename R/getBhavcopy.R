@@ -9,118 +9,80 @@
 #' 
 #' This will create a trade object
 #' @details  trades - Returns the empty trades data frame with given 'n' objects
-#' @param  n - no. of rows
-#' @rdname trades
-#' @return blank trades dataframe
+#' @param  startDate - Date in %Y-%m-%d format.
+#' @param  endDate   - Date in %Y-%m-%d format.
+#' @param  fileName  - Name of the file where data to be stored with complete path.
+#' @param  weekends  - default, it won't pull data for weekends. If needed enable the flag. Sometime Muhurat trade can be on weekends.
+#' @rdname getBhavcopy
+#' @return Returns a dataframe with all the accumulated data.
 #' @export
 
 getBhavcopy <- function(startDate = as.Date("2010-01-01",order="ymd"),
                         endDate   = as.Date("2010-01-10",order="ymd"),
-                        fileName  = bhavcopy1
+                        fileName  = NULL,
+                        weekends  = FALSE,
+                        freq      = TRUE
                         ) {
   
   temp <- try( as.Date( startDate, format= "%Y-%m-%d" ) )
-  if( class( temp ) == "try-error" || is.na( d ) ) {
+  if( class( temp ) == "try-error" || is.na( temp ) ) {
     stop("In getBhavcopy : startDate is not valid")
-    
   }
-#Define Working Directory, where files would be saved
-setwd('E:/R/bhavcopy/')
-
-#Define start and end dates, and convert them into date format
-startDate = as.Date("2018-01-01", order="ymd")
-endDate = as.Date("2018-01-08", order="ymd")
-
-#work with date, month, year for which data has to be extracted
-myDate = startDate
-zippedFile <- tempfile()
-
-while (myDate <= endDate){
-  filenameDate = paste(as.character(myDate, "%y%m%d"), ".csv", sep = "")
-  monthfilename=paste(as.character(myDate, "%y%m"),".csv", sep = "")
-  downloadfilename=paste("cm", toupper(as.character(myDate, "%d%b%Y")), "bhav.csv", sep = "")
-  temp =""
   
-  #Generate URL
-  myURL = paste("http://nse-india.com/content/historical/EQUITIES/",
-                as.character(myDate, "%Y"), "/", 
-                toupper(as.character(myDate, "%b")),"/",
-                downloadfilename, ".zip", sep = "")
+  temp <- try( as.Date( endDate, format= "%Y-%m-%d" ) )
+  if( class( temp ) == "try-error" || is.na( temp ) ) {
+    stop("In getBhavcopy : endDate is not valid")
+  }
+  currDir <- getwd()
+  setwd(tempdir())
+  currDate = startDate
+  zippedFile <- tempfile()
   
-  #Sample url - https://www.nse-india.com/content/historical/EQUITIES/2018/JAN/cm01JAN2018bhav.csv.zip
-  
-  #retrieve Zipped file
-  tryCatch({
-    #Download Zipped File
-    download.file(myURL,zippedFile, quiet=TRUE, mode="wb")
+  while (currDate <= endDate){
+    filenameDate = paste(as.character(currDate, "%y%m%d"), ".csv", sep = "")
+    yearfilename=paste(as.character(currDate, "%y"),".csv", sep = "")
+    downloadfilename=paste("cm", toupper(as.character(currDate, "%d%b%Y")), "bhav.csv", sep = "")
+    temp =""
     
-    #Unzip file and save it in temp 
-    temp <- read.csv(unzip(zippedFile), sep = ",") 
-    
-    #Rename Columns Volume and Date
-    colnames(temp)[9] <- "VOLUME"
-    colnames(temp)[11] <- "DATE"
-    
-    #Define Date format
-    temp$DATE <- as.Date(temp$DATE, format="%d-%b-%Y")
-    
-    #Reorder Columns and Select relevant columns
-    #temp<-subset(temp,select=c("DATE","SYMBOL","OPEN","HIGH","LOW","CLOSE","LAST","VOLUME"))
-    
-    #Write the BHAVCOPY csv - datewise
-    write.csv(temp,file=filenameDate,row.names = FALSE)
-    
-    #Write the csv in Monthly file
-    if (file.exists(monthfilename))
-    {
-      write.table(temp,file=monthfilename,sep=",", eol="\n", row.names = FALSE, col.names = FALSE, append=TRUE)
-    }else
-    {
-      write.table(temp,file=monthfilename,sep=",", eol="\n", row.names = FALSE, col.names = TRUE, append=FALSE)
+    #Sample url - https://www.nse-india.com/content/historical/EQUITIES/2018/JAN/cm01JAN2018bhav.csv.zip
+    myURL = paste("http://nse-india.com/content/historical/EQUITIES/",
+                  as.character(currDate, "%Y"), "/", 
+                  toupper(as.character(currDate, "%b")),"/",
+                  downloadfilename, ".zip", sep = "")
+    tryCatch ( {
+      #Download  & unzip file 
+      download.file(myURL,zippedFile, quiet=TRUE, mode="wb")
+      temp <- read.csv(unzip(zippedFile), sep = ",") 
+      temp$TIMESTAMP <- as.Date(temp$TIMESTAMP, format="%d-%b-%Y")
+      
+      #Write the BHAVCOPY csv - datewise
+      write.csv(temp,file=filenameDate,row.names = FALSE)
+        
+      #Write the csv in Monthly file
+      if (file.exists(yearfilename)) {
+        write.table(temp,file=yearfilename,sep=",", eol="\n", row.names = FALSE, col.names = FALSE, append=TRUE)
+      } else {
+        write.table(temp,file=yearfilename,sep=",", eol="\n", row.names = FALSE, col.names = TRUE, append=FALSE)
+      }
+    },
+    error=function(err){
+      print(paste(currDate, "-No Record"))
     }
-    
-    #Write the file Symbol wise
-    
-    
-    #Print Progress
-    #print(paste (myDate, "-Done!", endDate-myDate, "left"))
-  }, error=function(err){
-    print(paste(myDate, "-No Record"))
-  }
   )
-  myDate <- myDate+1
-  #print(paste(myDate, "Next Record"))
-}
-
-#Delete temp file - Bhavcopy
-junk <- dir(pattern="cm")
-file.remove(junk)
-
-get.trades <- function( pf = "default"){
-  if ( !is.valid.portfolio(pf) ) {
-    stop("add.trades.position - portfolio is not a valid portfolio. Create one using portfolio before using the same.")
-  }
-  ipf <- get(pf,envir = .rules)
-  return( ipf$trades[1:(ipf$tradeRow-1),] )
-}
-
-
-#' @details as.xts.trades - Convert the trades from dataframe to xts. Since xts is a strict matrix, all string columns are removed.
-#' Index of the returned xts object is open date on which trade is initially opened.
-#' @param t - trades
-#' @return returns the trades/trxns data frame
-#' @rdname trades
-#' @export
-as.xts.trades <- function(t){
-  if ( !is.trades(t) ) {
-    stop("as.xts.trades - t is not a trades object.")
-  }
-  t$symbols <- NULL
-  t$direction <- ifelse(t$direction=="LONG",1,-1)
-  t$exitTime <- NULL
-  t$closeReason <- NULL
-  t$openReason <- NULL
   
-  xts(t[,-2],order.by = t[,2])
-}
-
+  currDate <- currDate+1
+  #Do not try to get data for weekends.
+  if (weekends == FALSE){
+    while( (wday(currDate) == 1) || (wday(currDate == 7)) ){
+        currDate <- currDate + 1
+  }
+  }
+ } #end of while loop
+  
+  
+ #Delete temp file - Bhavcopy
+ junk <- dir(pattern="cm")
+ file.remove(junk)
+ return(yearfilename)
+} #end of function
+  
