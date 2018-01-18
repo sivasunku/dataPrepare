@@ -5,26 +5,35 @@
 \title{getBhavcopy}
 \usage{
 getBhavcopy(startDate = as.Date("2010-01-01", order = "ymd"),
-  endDate = as.Date("2010-01-10", order = "ymd"), fileName = NULL,
-  weekends = FALSE, freq = TRUE)
+  endDate = as.Date("2010-01-10", order = "ymd"), dirName = NULL,
+  weekends = FALSE, yearlyFile = TRUE, dayFile = TRUE, monFile = TRUE,
+  rdaObj = NULL)
 }
 \arguments{
-\item{startDate}{- Date in %Y-%m-%d format.}
+\item{startDate}{- Date in YMD format.}
 
-\item{endDate}{- Date in %Y-%m-%d format.}
+\item{endDate}{- Date in YMD format.}
 
-\item{fileName}{- Name of the file where data to be stored with complete path.}
+\item{dirName}{- default - current working directory. Name of the directory where files should be downloaded.}
 
 \item{weekends}{- default, it won't pull data for weekends. If needed enable the flag. Sometime Muhurat trade can be on weekends.}
+
+\item{dayFile}{- default - TRUE. If yearlyfile is true, if you wish you can remove all daily files. It is valid only when yearlyFile is True.}
+
+\item{monFile}{- default - FALES. If monthly file to be created.}
+
+\item{rdaObj}{- If rdaObj is given, complete data is created as rda file, with bhavcopy as objectname(dataframe)}
+
+\item{YearlyFile}{- default - FALSE. If given, a consolidated file with all the data yearwise is kept.}
 }
 \value{
 Returns a dataframe with all the accumulated data.
 }
 \description{
-This gets the bhavcopy from nse-india for given days. It will by default, do not download Sun/Sat.
+This gets the bhavcopy from nse-india for given days and puts the data into the file given in params.
 }
 \details{
-trades - Returns the empty trades data frame with given 'n' objects
+Copies the bhavcopies from nse and keeps the csv (yearlywise) in the given directory.
 }
 \note{
 This will create a trade object
